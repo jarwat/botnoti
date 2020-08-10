@@ -1,17 +1,42 @@
 <?php
-// URL API LINE
-$API_URL = 'https://api.line.me/v2/bot/message';
-// ใส่ Channel access token (long-lived)
-$ACCESS_TOKEN = '##########################';
-// ใส่ Channel Secret
-$CHANNEL_SECRET = '##########################';
 
-// Set HEADER
+
+$API_URL = 'https://api.line.me/v2/bot/message';
+$ACCESS_TOKEN = 'U0eda97726b3b4d146db2f6f30b4d63a9'; 
+$channelSecret = 'c0c1c58f565b7f1750a8b92c91bf6593';
+
+
 $POST_HEADER = array('Content-Type: application/json', 'Authorization: Bearer ' . $ACCESS_TOKEN);
-// Get request content
-$request = file_get_contents('php://input');
-// Decode JSON to Array
-$request_array = json_decode($request, true);
+
+$request = file_get_contents('php://input');   // Get request content
+$request_array = json_decode($request, true);   // Decode JSON to Array
+
+
+
+if ( sizeof($request_array['events']) > 0 ) {
+
+    foreach ($request_array['events'] as $event) {
+
+        $reply_message = '';
+        $reply_token = $event['replyToken'];
+
+
+        $data = [
+            'replyToken' => $reply_token,
+            'messages' => [['type' => 'text', 'text' => json_encode($request_array)]]
+        ];
+        $post_body = json_encode($data, JSON_UNESCAPED_UNICODE);
+
+        $send_result = send_reply_message($API_URL.'/reply', $POST_HEADER, $post_body);
+
+        echo "Result: ".$send_result."\r\n";
+        
+    }
+}
+
+echo "OK";
+
+
 
 
 function send_reply_message($url, $post_header, $post_body)
@@ -28,28 +53,4 @@ function send_reply_message($url, $post_header, $post_body)
     return $result;
 }
 
-if ( sizeof($request_array['events']) > 0 ) {
-      foreach ($request_array['events'] as $event) {
-      
-      $reply_message = '';
-      $reply_token = $event['replyToken'];
-      $data = [
-         'replyToken' => $reply_token,
-         'messages' => [
-            ['type' => 'text', 
-             'text' => json_encode($request_array)]
-         ]
-      ];
-      $post_body = json_encode($data, JSON_UNESCAPED_UNICODE);
-      $send_result = send_reply_message($API_URL.'/reply', $POST_HEADER, $post_body);
-      echo "Result: ".$send_result."\r\n";
-   }
-}
-echo "OK";
-
-{
-   "require": {
-       "php": "^7.1.0"
-   }
-}
 ?>
